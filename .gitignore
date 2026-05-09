@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+.env
+
+# Generated outputs
+Temp/
+Clips/
+clips.txt
+
+# Local media (large)
+Input/*.mp4
+Input/*.mkv
+Input/*.mov
+
+# Editor / OS
+.idea/
+.vscode/
+*.swp
+Thumbs.db
+Desktop.ini

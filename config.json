@@ -1,0 +1,92 @@
+{
+  "input_dir": "Input",
+  "temp_dir": "Temp",
+  "clips_dir": "Clips",
+  "frame_step_sec": 2.0,
+  "killfeed_region": {
+    "mode": "auto",
+    "manual": {
+      "mode": "relative",
+      "x": 0.0,
+      "y": 0.56,
+      "w": 0.42,
+      "h": 0.20
+    },
+    "auto": {
+      "x_offsets": [0.0, 0.05, 0.1, 0.15, 0.2, 0.25, 0.3, 0.35, 0.4, 0.45],
+      "y_offsets": [0.32, 0.38, 0.44, 0.5, 0.56],
+      "probe_start_sec": 45,
+      "probe_duration_sec": 600,
+      "sample_count": 8,
+      "min_calibration_score": 4,
+      "calibration_min_confidence": 0.35,
+      "calibration_keywords": {
+        "killed": 2,
+        "kill": 1,
+        "scored": 3,
+        "defended": 2,
+        "overkill": 6,
+        "killtacular": 6,
+        "killtrocity": 6
+      },
+      "negative_substrings": [
+        "round limit",
+        "lobby",
+        "borderless",
+        "controller",
+        "resolution scale",
+        "view player",
+        "spectating",
+        "respawn",
+        "respawning",
+        "change player",
+        "killed by"
+      ]
+    }
+  },
+  "ocr": {
+    "lang": "en",
+    "device": "auto",
+    "enable_mkldnn": false,
+    "crop_scale": 1.0,
+    "preprocess": {
+      "enabled": false,
+      "upscale": 1.5,
+      "use_otsu": false
+    },
+    "min_confidence": 0.6
+  },
+  "keywords": {
+    "killtrocity": 20,
+    "killtacular": 18,
+    "overkill": 12,
+    "running riot": 18,
+    "killing frenzy": 15,
+    "killing spree": 10,
+    "scored": 20,
+    "defended": 10
+  },
+  "scoring": {
+    "case_insensitive": true,
+    "per_keyword_max_hits": 3,
+    "fuzzy_match": true,
+    "fuzzy_partial_threshold": 82,
+    "fuzzy_min_keyword_len": 4,
+    "fuzzy_min_haystack_chars": 5,
+    "fuzzy_min_haystack_ratio": 0.35
+  },
+  "pipeline": {
+    "process_all_videos": false,
+    "ffmpeg_export": false
+  },
+  "clip_proposals": {
+    "score_threshold": 8,
+    "pre_seconds": 20,
+    "post_seconds": 20,
+    "min_gap_seconds": 12
+  },
+  "debug": {
+    "save_crops": false,
+    "save_crops_every_n_frames": 5
+  }
+}

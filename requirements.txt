@@ -1,0 +1,15 @@
+--index-url https://www.paddlepaddle.org.cn/packages/stable/cu126/
+
+opencv-python
+paddleocr
+paddlepaddle-gpu==3.2.2
+nvidia-cudnn-cu12==9.22.0.52
+moviepy
+numpy
+pandas
+librosa
+pysrt
+webvtt-py
+tqdm
+python-bidi==0.4.2
+rapidfuzz>=3.0.0
