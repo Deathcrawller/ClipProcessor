@@ -1,6 +1,6 @@
 # ClipProcessor
 
-Killfeed **OCR** on Halo-style VODs, **keyword scoring**, and **FFmpeg** clip export. Built for long Grifball / match recordings so you can turn medal lines and other HUD text into highlight candidates.
+Killfeed **OCR** on Halo VODs, **keyword scoring**, and **FFmpeg** clip export. Built for long Grifball / match recordings so you can turn medal lines and other HUD text into highlight candidates.
 
 ## Quick start
 
