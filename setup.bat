@@ -154,5 +154,8 @@ echo   - No internet connection
 echo   - Antivirus blocking pip downloads
 echo   - Wrong Python version ^(need 3.10+^)
 echo   - Forced GPU mode without an NVIDIA GPU - try:  setup.bat cpu
+echo   - Stale .venv\ from a prior failed install - delete .venv\ and re-run
+echo   - Dependency-resolution conflict ^(see "ResolutionImpossible" above^):
+echo     pull the latest from git and re-run setup.bat
 pause
 exit /b 1
