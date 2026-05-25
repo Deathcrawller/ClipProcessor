@@ -1,9 +1,10 @@
---index-url https://www.paddlepaddle.org.cn/packages/stable/cu126/
+# Base PyPI dependencies. Install Paddle separately:
+#   pip install -r requirements-gpu.txt   (NVIDIA GPU, recommended)
+#   pip install -r requirements-cpu.txt   (no GPU / non-NVIDIA)
+# Or just run setup.bat once and it picks the right one.
 
 opencv-python
 paddleocr
-paddlepaddle-gpu==3.2.2
-nvidia-cudnn-cu12==9.22.0.52
 moviepy
 numpy
 pandas

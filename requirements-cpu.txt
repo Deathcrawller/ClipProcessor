@@ -1,0 +1,6 @@
+# PaddlePaddle CPU build. Use when there is no NVIDIA GPU available.
+# Pulls base deps from requirements.txt, then the CPU wheel from PyPI.
+
+-r requirements.txt
+
+paddlepaddle==3.2.2

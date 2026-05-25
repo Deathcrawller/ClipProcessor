@@ -1,0 +1,10 @@
+# PaddlePaddle GPU build (CUDA 12.6). For NVIDIA GPUs.
+# Pulls base deps from requirements.txt, then the GPU wheel + matching cuDNN.
+# The --extra-index-url is additive: PyPI is still used for base packages.
+
+--extra-index-url https://www.paddlepaddle.org.cn/packages/stable/cu126/
+
+-r requirements.txt
+
+paddlepaddle-gpu==3.2.2
+nvidia-cudnn-cu12==9.22.0.52

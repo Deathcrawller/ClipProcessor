@@ -8,6 +8,9 @@ REM =========================================
 
 cd /d "%~dp0"
 
+REM Activate the project's venv if setup.bat was used.
+if exist ".venv\Scripts\activate.bat" call ".venv\Scripts\activate.bat"
+
 set CLIP_FILE=clips.txt
 set OUTPUT_DIR=Clips
 

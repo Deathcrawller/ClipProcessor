@@ -4,13 +4,25 @@ Killfeed **OCR** on Halo VODs, **keyword scoring**, and **FFmpeg** clip export. 
 
 ## Quick start
 
-1. **Install** (from this folder):
+1. **Install** — Windows 11, double-click **`setup.bat`** in this folder.
 
-   ```bash
-   pip install -r requirements.txt
+   It checks for Python and FFmpeg (offers to install them via `winget` if missing), detects whether you have an NVIDIA GPU, creates a `.venv\`, and installs the right PaddlePaddle build.
+
+   Force a specific build by running from a terminal:
+
+   ```powershell
+   .\setup.bat gpu   # force CUDA 12.6 GPU wheel
+   .\setup.bat cpu   # force CPU wheel
    ```
 
-   GPU notes and Paddle checks are in [`docs/overview.md`](docs/overview.md).
+   Prefer a manual install? See [`docs/overview.md`](docs/overview.md) — short version:
+
+   ```powershell
+   py -m venv .venv
+   .\.venv\Scripts\Activate.ps1
+   python -m pip install --upgrade pip
+   pip install -r requirements-gpu.txt   # or requirements-cpu.txt
+   ```
 
 2. Put one or more **`.mp4`** files in **`Input/`**.
 
@@ -50,15 +62,18 @@ Edit **`config.json`**:
 ClipProcessor/
   README.md
   config.json
-  requirements.txt
+  setup.bat              # First-time install (creates .venv\, picks GPU/CPU)
+  requirements.txt       # Base PyPI deps
+  requirements-gpu.txt   # Base + PaddlePaddle GPU (CUDA 12.6)
+  requirements-cpu.txt   # Base + PaddlePaddle CPU
   process_clips.py
-  run_process.bat
-  process_clips.bat
-  clipprocessor/     # Python package (OCR, region, scoring, export)
-  docs/overview.md   # Detailed run notes, GPU, HUD calibration
-  Input/             # Drop your .mp4 files here
-  Temp/              # Generated (gitignored)
-  Clips/             # Exported clips (gitignored)
+  run_process.bat        # One-click: process all Input/*.mp4 + FFmpeg export
+  process_clips.bat      # Legacy: FFmpeg-only export from root clips.txt
+  clipprocessor/         # Python package (OCR, region, scoring, export, annotations)
+  docs/overview.md       # Detailed run notes, GPU, HUD calibration
+  Input/                 # Drop your .mp4 files here
+  Temp/                  # Generated (gitignored)
+  Clips/                 # Exported clips + per-video annotation .txt (gitignored)
 ```
 
 ## Documentation
@@ -67,5 +82,7 @@ See **[`docs/overview.md`](docs/overview.md)** for folder layout, killfeed auto-
 
 ## Requirements
 
-- **Python 3** (see `requirements.txt` for Paddle / OCR stack).
-- **FFmpeg** on your PATH for `--ffmpeg-export`, `run_process.bat`, or `process_clips.bat`.
+- **Windows 11** (the install scripts assume `winget` is available).
+- **Python 3.10+** — `setup.bat` can install Python 3.12 via `winget` if missing.
+- **FFmpeg** on your PATH — `setup.bat` can install it via `winget`.
+- **NVIDIA GPU (optional)** with a recent driver for the GPU PaddlePaddle wheel (CUDA 12.6). No GPU? `setup.bat` falls back to the CPU build automatically.

@@ -39,17 +39,40 @@ ClipProcessor/
 
 ## Run
 
-1. Install dependencies:
+### 1. Install (one-shot)
 
-```bash
-pip install -r requirements.txt
+Double-click **`setup.bat`** in the project folder. It will:
+
+1. Detect Python (offer to install Python 3.12 via `winget` if missing).
+2. Detect FFmpeg (offer to install via `winget` if missing).
+3. Detect an NVIDIA GPU (via `nvidia-smi`).
+4. Create `.venv\` in the project folder and activate it.
+5. Install `requirements-gpu.txt` or `requirements-cpu.txt` accordingly.
+6. Verify PaddlePaddle imports and report CUDA visibility.
+
+Override the auto-detection from a terminal:
+
+```powershell
+.\setup.bat gpu      # Force CUDA 12.6 GPU wheel
+.\setup.bat cpu      # Force the CPU wheel
+```
+
+After install, `run_process.bat` and `process_clips.bat` will automatically activate `.venv\` before running, so there's nothing to remember.
+
+### Manual install (alternative)
+
+```powershell
+py -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements-gpu.txt    # NVIDIA GPU
+# OR
+pip install -r requirements-cpu.txt    # No GPU / non-NVIDIA
 ```
 
 ### GPU notes (Windows)
 
-This project is configured for **PaddlePaddle GPU (CUDA 12.6)** by default via the `--index-url` line in `requirements.txt`.
-
-- We also pin `nvidia-cudnn-cu12` to avoid cuDNN runtime mismatches on Windows.
+The GPU build uses **PaddlePaddle GPU (CUDA 12.6)** from `https://www.paddlepaddle.org.cn/packages/stable/cu126/` (added via `--extra-index-url` so PyPI still works for the rest of the deps). The matching `nvidia-cudnn-cu12==9.22.0.52` ships the runtime libs — you do **not** need to install the CUDA Toolkit yourself, only an up-to-date NVIDIA driver.
 
 - Verify your GPU is visible: `nvidia-smi`
 - Verify Paddle sees CUDA:
@@ -57,6 +80,15 @@ This project is configured for **PaddlePaddle GPU (CUDA 12.6)** by default via t
 ```bash
 python -c "import paddle; print(paddle.__version__); print(paddle.is_compiled_with_cuda()); print(paddle.device.get_device())"
 ```
+
+Expected on a GPU box: version string, `True`, `gpu:0`. CPU-only box: `False`, `cpu`.
+
+### Troubleshooting install
+
+- **`setup.bat` says Python not found after winget install** — close the terminal and open a new one so PATH refreshes, then re-run `setup.bat`.
+- **GPU wheel install fails on an older NVIDIA card** — re-run as `setup.bat cpu` to use the CPU build.
+- **`ffmpeg not found` warnings** — pure OCR + `clips.txt` still work; only the actual clip export step needs FFmpeg. Install it later with `winget install Gyan.FFmpeg`.
+- **Switching between GPU and CPU builds** — delete `.venv\` and re-run `setup.bat`.
 
 2. Put an `*.mp4` in `Input/` (or in the project root).
 
