@@ -83,7 +83,12 @@
     "score_threshold": 8,
     "pre_seconds": 20,
     "post_seconds": 20,
-    "min_gap_seconds": 12
+    "min_gap_seconds": 12,
+    "annotations": {
+      "enabled": true,
+      "dedupe_window_sec": 5,
+      "include_score": true
+    }
   },
   "debug": {
     "save_crops": false,

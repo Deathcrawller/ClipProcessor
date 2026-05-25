@@ -12,6 +12,7 @@ V1 implements **Killfeed OCR + keyword scoring** and produces:
 
 - `Temp/ocr_events.json` (debuggable timeline of OCR results and scores; per-video subfolders when batching)
 - `clips.txt` (FFmpeg clip list compatible with `process_clips.bat`)
+- `Clips/<video-stem>/<video-stem>_events.txt` (human-readable keyword timeline per source video)
 
 **Default:** `python process_clips.py` processes **one** video — the first `*.mp4` sorted by name in `Input/`, or in the project root if `Input/` is empty. **Multiple files:** use `python process_clips.py --all-videos` (every `Input/*.mp4`, sorted). With more than one file, outputs go under `Temp/<video-stem>/` and exported clips under `Clips/<video-stem>/`. A single file in `Input/` with `--all-videos` still uses the flat `Temp/ocr_events.json` and root `clips.txt` layout.
 
@@ -31,7 +32,9 @@ ClipProcessor/
     ocr_events.json
     <video-stem>/   (batch: ocr_events.json, clips.txt, …)
   Clips/
-    (exported clips; batch: one subfolder per source video)
+    <video-stem>/         (always created; one subfolder per source video)
+      <video-stem>_events.txt   (keyword timeline)
+      <clip-basename>.mp4       (when --ffmpeg-export ran)
 ```
 
 ## Run
@@ -92,6 +95,37 @@ If auto gives **all-zero candidate scores**, it often means OCR saw text but the
 If auto keeps picking **radar / spectating / respawn UI** instead of the killfeed, add those strings to `auto.negative_substrings` and adjust `auto.y_offsets` upward (your killfeed is usually higher than the bottom-left HUD text).
 
 If auto still reports **all-zero candidate scores**, it can simply mean your `keywords` rarely appear during the probe window (for example, the killfeed only shows `X killed Y` and you’re not using `killed` as a keyword). In that case, set `killfeed_region.auto.calibration_keywords` to include lightweight terms like `killed` / `kill` so the crop can lock onto the killfeed area, while keeping your main `keywords` list focused on highlight events.
+
+## Keyword annotation (`<video-stem>_events.txt`)
+
+For every processed video, ClipProcessor writes a plain-text timeline alongside the exported clips at `Clips/<video-stem>/<video-stem>_events.txt`. It lists **every OCR sample that matched at least one keyword**, regardless of whether the event was strong enough to become a clip. This is the hand-off document for a reviewer: they can scrub the source VOD by timestamp without re-running OCR.
+
+Sample lines:
+
+```
+# Keyword events for cutteryt.mp4
+# Source: D:\Grifball Clips\ClipProcessor\Input\cutteryt.mp4
+# Clip score threshold: 8 (lines marked with * triggered a clip window)
+# Duplicate-keyword suppression window: 5s
+# Format: HH:MM:SS - Keyword[, Keyword...] (score N)
+
+00:05:54 - Overkill  (score 12)  *
+00:06:23 - Scored  (score 20)  *
+00:08:11 - Killing Spree, Overkill  (score 22)  *
+00:12:07 - Killed  (score 1)
+```
+
+Behavior:
+
+- Keywords come from `config.json` → `keywords`. Add low-weight entries (for example `"killed": 1`) to surface routine events that fall below the clip threshold but are still useful when reviewing.
+- The killfeed lingers across several OCR samples, so adjacent repeats of the same keyword within `clip_proposals.annotations.dedupe_window_sec` (default 5s) are collapsed to the earliest timestamp.
+- Lines whose event reached `clip_proposals.score_threshold` get a trailing `*` so reviewers can tell at a glance which moments became clips.
+- Toggle / tune via `clip_proposals.annotations` in `config.json`:
+  - `enabled` (default `true`)
+  - `dedupe_window_sec` (default `5`)
+  - `include_score` (default `true`)
+
+The file is written even when `--ffmpeg-export` is not used — the subfolder is created on demand.
 
 ## Config (manual crop)
 

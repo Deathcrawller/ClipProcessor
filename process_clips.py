@@ -5,6 +5,7 @@ import os
 import sys
 from typing import Any
 
+from clipprocessor.annotations import write_keyword_events_txt
 from clipprocessor.clip_proposals import propose_clip_windows
 from clipprocessor.export_clips import export_clips_from_txt, ffmpeg_available
 from clipprocessor.fs import (
@@ -76,9 +77,11 @@ def _process_one_video(
     args: argparse.Namespace,
     events_json_path: str,
     clips_txt_path: str | None,
+    clips_subdir: str,
+    video_stem: str,
     label_prefix: str,
-) -> tuple[int, int]:
-    """Run OCR + scoring for one file. Returns (event_count, clip_window_count)."""
+) -> tuple[int, int, int]:
+    """Run OCR + scoring for one file. Returns (event_count, clip_window_count, annotation_line_count)."""
     ocr_cfg = cfg.get("ocr", {}) or {}
     debug_cfg = cfg.get("debug", {}) or {}
     crops_dir = os.path.join(paths.temp_dir, "killfeed_crops")
@@ -146,7 +149,22 @@ def _process_one_video(
             for w in windows:
                 f.write(w.as_txt_row() + "\n")
 
-    return len(events), len(windows)
+    ann_cfg = clip_cfg.get("annotations", {}) or {}
+    ann_enabled = bool(ann_cfg.get("enabled", True))
+    n_ann = 0
+    if ann_enabled:
+        ensure_dir(clips_subdir)
+        ann_path = os.path.join(clips_subdir, f"{video_stem}_events.txt")
+        n_ann = write_keyword_events_txt(
+            out_path=ann_path,
+            events=events,
+            video_path=video_path,
+            score_threshold=int(clip_cfg.get("score_threshold", 8)),
+            dedupe_window_sec=float(ann_cfg.get("dedupe_window_sec", 5.0)),
+            include_score=bool(ann_cfg.get("include_score", True)),
+        )
+
+    return len(events), len(windows), n_ann
 
 
 def main() -> int:
@@ -196,6 +214,10 @@ def main() -> int:
         default_prefix = stem if use_subdirs else "auto"
         prefix = (args.label_prefix or "").strip() or default_prefix
 
+        # Per-video subfolder under Clips/ is always used so each video's
+        # exports + annotation stay bundled together for hand-off.
+        clips_subdir = os.path.join(paths.clips_dir, stem)
+
         if use_subdirs:
             sub = os.path.join(paths.temp_dir, stem)
             ensure_dir(sub)
@@ -209,7 +231,7 @@ def main() -> int:
 
         print(f"\n=== {os.path.basename(video_path)} ===")
         try:
-            n_ev, n_clips = _process_one_video(
+            n_ev, n_clips, n_ann = _process_one_video(
                 video_path=video_path,
                 cfg=cfg,
                 paths=paths,
@@ -217,6 +239,8 @@ def main() -> int:
                 args=args,
                 events_json_path=events_json_path,
                 clips_txt_path=clips_txt_path,
+                clips_subdir=clips_subdir,
+                video_stem=stem,
                 label_prefix=prefix,
             )
         except Exception as ex:
@@ -226,21 +250,25 @@ def main() -> int:
 
         print(f"OCR events: {n_ev} -> {events_json_path}")
         print(f"Proposed clips: {n_clips} -> {clips_txt_path or '(skipped)'}")
+        if n_ann:
+            print(
+                f"Keyword annotations: {n_ann} -> "
+                f"{os.path.join(clips_subdir, f'{stem}_events.txt')}"
+            )
 
         if do_ffmpeg and clips_txt_path and os.path.isfile(clips_txt_path):
             if not ffmpeg_available():
                 print("ffmpeg not found on PATH; skip export.", file=sys.stderr)
                 any_fail = True
                 continue
-            out_dir = os.path.join(paths.clips_dir, stem) if use_subdirs else paths.clips_dir
-            ensure_dir(out_dir)
+            ensure_dir(clips_subdir)
             try:
                 n_cut = export_clips_from_txt(
                     video_path=video_path,
                     clips_txt_path=clips_txt_path,
-                    output_dir=out_dir,
+                    output_dir=clips_subdir,
                 )
-                print(f"Exported {n_cut} clip(s) -> {out_dir}")
+                print(f"Exported {n_cut} clip(s) -> {clips_subdir}")
             except Exception as ex:
                 print(f"FFmpeg export failed: {ex}", file=sys.stderr)
                 any_fail = True
